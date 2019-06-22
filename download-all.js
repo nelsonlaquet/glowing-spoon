@@ -2,17 +2,15 @@ const { trainingKey, azureMachineLearningUrl } = require("./config.js");
 
 const {
 	readFileSync,
-	statSync,
 	existsSync,
 	createWriteStream,
 	createReadStream,
-	rename,
+	mkdirSync,
 	copyFile,
 } = require("fs");
 const { createHash } = require("crypto");
 const request = require("request");
 const fetch = require("node-fetch");
-const FormData = require("form-data");
 const Jimp = require("jimp");
 
 const percentRegex = /^([\-\d]+)\%$/;
@@ -64,6 +62,9 @@ const toTag = [
 main();
 
 async function main() {
+	ensureDirectory("./emotes");
+	ensureDirectory("./raw-images");
+
 	const emotes = [];
 	const emotesByTag = {};
 	const rawEmotes = JSON.parse(readFileSync("./emotes.json"));
@@ -160,7 +161,7 @@ async function main() {
 					},
 					formData: body,
 				},
-				(err, response, body) => {
+				err => {
 					console.log(err);
 					res();
 				},
@@ -304,4 +305,12 @@ function parseBgPosition(pos, dim, max) {
 	}
 
 	throw new Error(`Invalid bg position ${pos}`);
+}
+
+function ensureDirectory(directory) {
+	if (existsSync(directory)) {
+		return;
+	}
+
+	mkdirSync(directory);
 }
